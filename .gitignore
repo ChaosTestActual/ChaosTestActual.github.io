@@ -1,0 +1,10 @@
+# GPG export artifacts
+/Documents/private.key
+/Documents/subkeys.key
+/Documents/pgp_pubkey.asc
+
+# Environment variables
+*/*.env
+
+# macOS specific files
+.DS_Store
