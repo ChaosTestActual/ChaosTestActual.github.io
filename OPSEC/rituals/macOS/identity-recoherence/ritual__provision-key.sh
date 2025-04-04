@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "$0")/lib/get_latest_valid_fpr.sh"
 
 prefix="RITUAL: PROVISION KEY: "
 
@@ -35,10 +36,7 @@ fi
 echo "$prefix Importing GPG private key into YubiKey..."
 
 # Extract the fingerprint of the newest non-revoked secret key
-fpr=$(gpg --list-secret-keys --with-colons | awk -F: '
-  $1 == "sec" && $2 != "r" { ok=1 }
-  $1 == "fpr" && ok { print $10; ok=0 }
-' | head -n 1)
+fpr="$(get_latest_valid_fpr)"
 
 # Move the subkeys onto the card
 gpg --command-fd 0 --status-fd 1 --edit-key "$fpr" <<EOF

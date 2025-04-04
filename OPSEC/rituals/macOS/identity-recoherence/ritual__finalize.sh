@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "$0")/lib/get_latest_valid_fpr.sh"
 
 prefix="RITUAL: FINALIZE: "
 
@@ -10,10 +11,7 @@ echo "$prefix Removing temporary files..."
 rm -f /tmp/cta_selected_key_colors.txt 2>/dev/null || true
 
 # Remove secret key from disk (preserve only on YubiKey)
-fpr=$(gpg --list-secret-keys --with-colons | awk -F: '
-  $1 == "sec" && $2 != "r" { ok=1 }
-  $1 == "fpr" && ok { print $10; ok=0 }
-' | head -n 1)
+fpr="$(get_latest_valid_fpr)"
 
 if gpg --list-secret-keys "$fpr" &>/dev/null; then
   echo "$prefix Deleting private key from disk (preserved on YubiKey)..."

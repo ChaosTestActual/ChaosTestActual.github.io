@@ -1,18 +1,8 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "$0")/lib/get_latest_valid_fpr.sh"
 
 prefix="RITUAL: GENERATE GPG KEY: "
-
-get_latest_valid_fpr() {
-  gpg --list-secret-keys --with-colons "$email" | awk -F: '
-    $1 == "sec" && $2 != "r" { t=$5; fpr="" }
-    $1 == "fpr" { fpr=$10 }
-    fpr && t {
-      print t, fpr
-      fpr=""; t=""
-    }
-  ' | sort -nr | head -n1 | cut -d' ' -f2
-}
 
 echo "$prefix __INITIATED__."
 
@@ -78,6 +68,14 @@ gpg --list-secret-keys --with-colons | awk -F: '
 
 # Get the most recently created non-revoked secret key fingerprint
 fpr="$(get_latest_valid_fpr)"
+
+read -rp "$prefix Do you want to configure git to use your new key? [Y/n]: " configure_git
+if [[ ! "$configure_git" =~ ^[Nn]$ ]]; then
+  git config --global user.signingkey "$fpr"
+  git config --global commit.gpgsign true
+  git config --global user.email "$email"
+  echo "$prefix Git config updated to use the new key."
+fi
 
 echo "$prefix Public key block for GitHub:"
 echo
